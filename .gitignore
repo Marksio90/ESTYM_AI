@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+
+# Data
+data/uploads/
+data/cache/
+*.sqlite3
+
+# Docker
+docker/volumes/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# MyPy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Logs
+*.log
+logs/
+
+# Model weights
+models/weights/
+*.pt
+*.onnx
+*.bin
