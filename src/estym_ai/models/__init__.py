@@ -1,0 +1,65 @@
+"""Core data models — the structured contracts between all agents."""
+
+from .enums import (
+    CaseStatus,
+    Confidence,
+    ConversionStatus,
+    FileType,
+    MaterialForm,
+    OperationType,
+    PrecedenceRelation,
+    ProductFamily,
+    RiskLevel,
+    SurfaceFinish,
+    WeldingType,
+)
+from .inquiry import AttachedFile, CustomerInfo, InquiryCase
+from .part_spec import (
+    BOMItem,
+    Geometry,
+    HoleSpec,
+    MaterialSpec,
+    PartSpec,
+    ProcessRequirements,
+    SheetGeometry,
+    TubeGeometry,
+    UncertaintyItem,
+    WeldSpec,
+    WireGeometry,
+)
+from .quote import CostBreakdownItem, Quote, SimilarCaseReference
+from .tech_plan import Operation, PrecedenceEdge, TechPlan
+
+__all__ = [
+    "CaseStatus",
+    "Confidence",
+    "ConversionStatus",
+    "FileType",
+    "MaterialForm",
+    "OperationType",
+    "PrecedenceRelation",
+    "ProductFamily",
+    "RiskLevel",
+    "SurfaceFinish",
+    "WeldingType",
+    "AttachedFile",
+    "CustomerInfo",
+    "InquiryCase",
+    "BOMItem",
+    "Geometry",
+    "HoleSpec",
+    "MaterialSpec",
+    "PartSpec",
+    "ProcessRequirements",
+    "SheetGeometry",
+    "TubeGeometry",
+    "UncertaintyItem",
+    "WeldSpec",
+    "WireGeometry",
+    "Operation",
+    "PrecedenceEdge",
+    "TechPlan",
+    "CostBreakdownItem",
+    "Quote",
+    "SimilarCaseReference",
+]
