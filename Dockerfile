@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir -e ".[dev]" 2>/dev/null || pip install --no-cache
 COPY src/ src/
 COPY data/ data/
 
+# Ensure runtime data directories exist
+RUN mkdir -p data/uploads data/cache
+
 # Create non-root user
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
