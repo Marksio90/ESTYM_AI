@@ -3,8 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
-  FolderOpen, CheckCircle2, Clock, AlertCircle,
-  TrendingUp, Plus, ArrowRight, RefreshCw
+  FolderOpen, CheckCircle2, Clock, TrendingUp,
+  Plus, ArrowRight, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { getCases } from '@/lib/api';
 import { StatusBadge } from '@/components/cases/StatusBadge';
@@ -16,6 +16,7 @@ function StatCard({ icon: Icon, label, value, color, sub }: {
   icon: React.ElementType; label: string; value: number | string;
   color: string; sub?: string;
 }) {
+  const bg = color.replace('text-', 'bg-').replace('-700', '-100').replace('-600', '-100');
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between">
@@ -24,7 +25,7 @@ function StatCard({ icon: Icon, label, value, color, sub }: {
           <p className={`mt-1 text-3xl font-bold ${color}`}>{value}</p>
           {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
         </div>
-        <div className={`rounded-xl p-3 ${color.replace('text-', 'bg-').replace('-700', '-100').replace('-600', '-100')}`}>
+        <div className={`rounded-xl p-3 ${bg}`}>
           <Icon className={`h-5 w-5 ${color}`} />
         </div>
       </div>
@@ -45,66 +46,64 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
     .slice(0, 8);
 
+  const ALL_STATUSES: CaseStatus[] = ['NEW','ANALYZING','AWAITING_INFO','CALCULATED','REVIEW','APPROVED','EXPORTED_TO_ERP','REJECTED'];
+  const STATUS_COLORS: Record<CaseStatus, string> = {
+    NEW: 'bg-blue-400', ANALYZING: 'bg-amber-400', AWAITING_INFO: 'bg-orange-400',
+    CALCULATED: 'bg-cyan-400', REVIEW: 'bg-purple-400', APPROVED: 'bg-green-500',
+    EXPORTED_TO_ERP: 'bg-teal-500', REJECTED: 'bg-red-400',
+  };
+
   return (
     <>
       <TopBar title="Pulpit" />
       <main className="flex-1 overflow-auto p-6">
-        {/* Header row */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-800">Przegląd platformy</h2>
-            <p className="mt-0.5 text-sm text-slate-500">
-              {cases.length} spraw łącznie · odświeżono właśnie
-            </p>
+            <p className="mt-0.5 text-sm text-slate-500">{cases.length} spraw łącznie</p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => refetch()}
               className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
             >
-              <RefreshCw className="h-4 w-4" />
-              Odśwież
+              <RefreshCw className="h-4 w-4" /> Odśwież
             </button>
             <Link
               href="/cases/new"
               className="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors shadow-sm"
             >
-              <Plus className="h-4 w-4" />
-              Nowe zapytanie
+              <Plus className="h-4 w-4" /> Nowe zapytanie
             </Link>
           </div>
         </div>
 
-        {/* Stat cards */}
+        {/* Stats */}
         <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard icon={FolderOpen}    label="Wszystkich spraw"  value={cases.length}       color="text-brand-700"  sub="od początku" />
-          <StatCard icon={Clock}         label="Do przeglądu"      value={byStatus('reviewing')} color="text-purple-700" sub="czeka na operatora" />
-          <StatCard icon={TrendingUp}    label="W analizie"        value={byStatus('analyzing')} color="text-amber-700"  sub="przetwarzanie AI" />
-          <StatCard icon={CheckCircle2}  label="Zatwierdzone"      value={byStatus('approved') + byStatus('exported')} color="text-green-700" sub="gotowe / wyeksportowane" />
+          <StatCard icon={FolderOpen}   label="Wszystkich spraw"  value={cases.length}  color="text-brand-700"  sub="od początku" />
+          <StatCard icon={Clock}        label="Do przeglądu"      value={byStatus('REVIEW')}     color="text-purple-700" sub="czeka na operatora" />
+          <StatCard icon={TrendingUp}   label="W analizie AI"     value={byStatus('ANALYZING')}  color="text-amber-700"  sub="przetwarzanie" />
+          <StatCard icon={CheckCircle2} label="Zatwierdzone"      value={byStatus('APPROVED') + byStatus('EXPORTED_TO_ERP')} color="text-green-700" sub="gotowe / wyeksportowane" />
         </div>
 
-        {/* Status breakdown bar */}
+        {/* Status bar */}
         {cases.length > 0 && (
           <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4">
             <p className="mb-3 text-sm font-semibold text-slate-700">Rozkład statusów</p>
             <div className="flex h-3 w-full overflow-hidden rounded-full">
-              {(['new','analyzing','reviewing','approved','exported','failed'] as CaseStatus[]).map(s => {
-                const pct = cases.length ? (byStatus(s) / cases.length) * 100 : 0;
-                const colors: Record<CaseStatus, string> = {
-                  new: 'bg-blue-400', analyzing: 'bg-amber-400', reviewing: 'bg-purple-400',
-                  approved: 'bg-green-500', exported: 'bg-teal-500', failed: 'bg-red-400',
-                };
-                return pct > 0 ? <div key={s} style={{ width: `${pct}%` }} className={colors[s]} /> : null;
+              {ALL_STATUSES.map(s => {
+                const pct = (byStatus(s) / cases.length) * 100;
+                return pct > 0 ? (
+                  <div key={s} style={{ width: `${pct}%` }} className={STATUS_COLORS[s]} />
+                ) : null;
               })}
             </div>
-            <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500">
-              {(['new','analyzing','reviewing','approved','exported','failed'] as CaseStatus[]).map(s => (
-                byStatus(s) > 0 && (
-                  <span key={s} className="flex items-center gap-1">
-                    <StatusBadge status={s} />
-                    <span>{byStatus(s)}</span>
-                  </span>
-                )
+            <div className="mt-3 flex flex-wrap gap-3">
+              {ALL_STATUSES.map(s => byStatus(s) > 0 && (
+                <span key={s} className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <StatusBadge status={s} />
+                  <span>{byStatus(s)}</span>
+                </span>
               ))}
             </div>
           </div>
@@ -124,14 +123,12 @@ export default function DashboardPage() {
               <RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Ładowanie…
             </div>
           )}
-
           {isError && (
             <div className="flex items-center justify-center gap-2 py-16 text-red-600">
               <AlertCircle className="h-5 w-5" />
               Nie można połączyć się z API. Czy backend działa?
             </div>
           )}
-
           {!isLoading && !isError && recent.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-slate-400">
               <FolderOpen className="mb-3 h-10 w-10" />
@@ -153,18 +150,20 @@ export default function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {recent.map(c => (
-                  <tr key={c.id} className="hover:bg-slate-50 transition-colors group">
+                  <tr key={c.case_id} className="hover:bg-slate-50 transition-colors group">
                     <td className="px-5 py-3">
                       <p className="font-medium text-slate-800">{c.customer.name}</p>
-                      {c.customer.company && <p className="text-xs text-slate-400">{c.customer.company}</p>}
+                      {c.email_subject && <p className="text-xs text-slate-400 truncate max-w-xs">{c.email_subject}</p>}
                     </td>
                     <td className="px-5 py-3"><StatusBadge status={c.status} /></td>
-                    <td className="px-5 py-3 text-slate-500 hidden md:table-cell">{c.files.length} plik{c.files.length !== 1 ? 'ów' : ''}</td>
+                    <td className="px-5 py-3 text-slate-500 hidden md:table-cell">
+                      {c.files.length} plik{c.files.length !== 1 ? 'ów' : ''}
+                    </td>
                     <td className="px-5 py-3 text-slate-400 text-xs hidden lg:table-cell">{timeAgo(c.updated_at)}</td>
                     <td className="px-5 py-3">
                       <Link
-                        href={`/cases/${c.id}`}
-                        className="invisible group-hover:visible flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700"
+                        href={`/cases/${c.case_id}`}
+                        className="invisible group-hover:visible flex items-center gap-1 text-xs font-medium text-brand-600"
                       >
                         Otwórz <ArrowRight className="h-3 w-3" />
                       </Link>

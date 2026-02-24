@@ -2,12 +2,12 @@ import axios from 'axios';
 import type {
   InquiryCase,
   CreateCaseRequest,
+  CreateCaseResponse,
   ApproveRequest,
   TechPlan,
   PartSpec,
   Quote,
   UploadedFile,
-  QuickEstimateRequest,
   HealthStatus,
 } from '@/types';
 
@@ -32,17 +32,17 @@ export const getCases = (): Promise<InquiryCase[]> =>
 export const getCase = (id: string): Promise<InquiryCase> =>
   http.get(`/api/v1/cases/${id}`).then(r => r.data);
 
-export const createCase = (body: CreateCaseRequest): Promise<InquiryCase> =>
+export const createCase = (body: CreateCaseRequest): Promise<CreateCaseResponse> =>
   http.post('/api/v1/cases', body).then(r => r.data);
 
-export const approveCase = (id: string, body: ApproveRequest): Promise<InquiryCase> =>
+export const approveCase = (id: string, body: ApproveRequest): Promise<{ case_id: string; approved: boolean; status: string }> =>
   http.post(`/api/v1/cases/${id}/approve`, body).then(r => r.data);
 
-export const getCaseTechPlan = (id: string): Promise<TechPlan> =>
+export const getCaseTechPlan = (id: string): Promise<{ case_id: string; tech_plan: TechPlan }> =>
   http.get(`/api/v1/cases/${id}/tech-plan`).then(r => r.data);
 
-export const getSimilarCases = (id: string): Promise<InquiryCase[]> =>
-  http.get(`/api/v1/cases/${id}/similar`).then(r => r.data);
+export const getSimilarCases = (id: string, limit = 5): Promise<{ case_id: string; similar_cases: InquiryCase[]; limit: number }> =>
+  http.get(`/api/v1/cases/${id}/similar`, { params: { limit } }).then(r => r.data);
 
 // ─── Files ────────────────────────────────────────────────────────────────────
 
@@ -55,22 +55,22 @@ export const uploadFile = (file: File, caseId?: string): Promise<UploadedFile> =
   }).then(r => r.data);
 };
 
-export const analyzeFile = (fileId: string): Promise<{ status: string }> =>
+export const analyzeFile = (fileId: string): Promise<{ file_id: string; status: string }> =>
   http.post(`/api/v1/files/analyze/${fileId}`).then(r => r.data);
 
-export const getFileSpec = (fileId: string): Promise<PartSpec> =>
+export const getFileSpec = (fileId: string): Promise<{ file_id: string; spec: PartSpec }> =>
   http.get(`/api/v1/files/${fileId}/spec`).then(r => r.data);
 
 // ─── Quotes ───────────────────────────────────────────────────────────────────
 
-export const quickEstimate = (body: QuickEstimateRequest): Promise<Quote> =>
-  http.post('/api/v1/quotes/quick-estimate', body).then(r => r.data);
+export const quickEstimate = (partSpec: PartSpec, batchSize = 1): Promise<{
+  quote: Quote; tech_plan: TechPlan;
+  summary: { total_cost: number; unit_cost: number; currency: string; operations: number; confidence: string };
+}> =>
+  http.post('/api/v1/quotes/quick-estimate', { part_spec: partSpec, batch_size: batchSize }).then(r => r.data);
 
 export const getQuote = (quoteId: string): Promise<Quote> =>
   http.get(`/api/v1/quotes/${quoteId}`).then(r => r.data);
 
-export const getQuoteBreakdown = (quoteId: string): Promise<Quote> =>
-  http.get(`/api/v1/quotes/${quoteId}/breakdown`).then(r => r.data);
-
-export const exportToERP = (quoteId: string): Promise<{ status: string; erp_id?: string }> =>
+export const exportToERP = (quoteId: string): Promise<{ quote_id: string; erp_status: string }> =>
   http.post(`/api/v1/quotes/${quoteId}/export-erp`).then(r => r.data);
