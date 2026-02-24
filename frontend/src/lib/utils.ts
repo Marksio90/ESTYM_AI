@@ -36,10 +36,21 @@ export function formatMinutes(min: number): string {
   return m > 0 ? `${h} h ${m} min` : `${h} h`;
 }
 
-export function confidenceLabel(c: string): string {
-  return { low: 'Niska', medium: 'Średnia', high: 'Wysoka' }[c] ?? c;
+export function confidenceLabel(c?: string): string {
+  if (!c) return '—';
+  return { LOW: 'Niska', MEDIUM: 'Średnia', HIGH: 'Wysoka' }[c] ?? c;
 }
 
-export function confidenceColor(c: string): string {
-  return { low: 'text-red-600', medium: 'text-amber-600', high: 'text-green-600' }[c] ?? 'text-gray-600';
+export function confidenceColor(c?: string): string {
+  if (!c) return 'text-gray-400';
+  return { LOW: 'text-red-600', MEDIUM: 'text-amber-600', HIGH: 'text-green-600' }[c] ?? 'text-gray-600';
+}
+
+export function formatSeconds(sec?: number): string {
+  if (!sec) return '—';
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m > 0 ? `${h} h ${m} min` : `${h} h`;
 }
