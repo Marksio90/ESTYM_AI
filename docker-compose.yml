@@ -7,6 +7,12 @@ services:
     ports:
       - "8000:8000"
     env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://estym:changeme@postgres:5432/estym_ai
+      NEO4J_URI: bolt://neo4j:7687
+      MINIO_ENDPOINT: minio:9000
+      POSTGRES_HOST: postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -23,6 +29,12 @@ services:
   worker:
     build: .
     env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://estym:changeme@postgres:5432/estym_ai
+      NEO4J_URI: bolt://neo4j:7687
+      MINIO_ENDPOINT: minio:9000
+      POSTGRES_HOST: postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -96,6 +108,12 @@ services:
       - "9001:9001"  # Console
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   # ==========================================================================
   # MinIO bucket initialization
@@ -103,15 +121,15 @@ services:
   minio-init:
     image: minio/mc:latest
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      sleep 5;
-      mc alias set local http://minio:9000 minioadmin minioadmin;
-      mc mb --ignore-existing local/raw-uploads;
-      mc mb --ignore-existing local/processed;
-      mc mb --ignore-existing local/thumbnails;
-      mc mb --ignore-existing local/embeddings-cache;
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb --ignore-existing myminio/raw-uploads;
+      mc mb --ignore-existing myminio/processed;
+      mc mb --ignore-existing myminio/thumbnails;
+      mc mb --ignore-existing myminio/embeddings-cache;
       echo 'Buckets created';
       "
 
