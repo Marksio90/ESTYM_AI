@@ -88,6 +88,9 @@ cad3d = [
     # Install via: conda install -c conda-forge pythonocc-core
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/estym_ai"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 120
