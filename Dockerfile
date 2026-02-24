@@ -8,12 +8,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Python dependencies
+# Application source (needed by hatchling to build the wheel)
 COPY pyproject.toml README.md ./
-RUN pip install --no-cache-dir -e ".[dev]" 2>/dev/null || pip install --no-cache-dir .
-
-# Application code
 COPY src/ src/
+
+# Python dependencies + package
+RUN pip install --no-cache-dir .
 COPY data/ data/
 
 # Ensure runtime data directories exist
