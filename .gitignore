@@ -23,8 +23,10 @@ env/
 .env
 
 # Data
-data/uploads/
-data/cache/
+data/uploads/*
+data/cache/*
+!data/uploads/.gitkeep
+!data/cache/.gitkeep
 *.sqlite3
 
 # Docker
